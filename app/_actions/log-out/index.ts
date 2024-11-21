@@ -1,13 +1,11 @@
 "use server";
 
-import Cookies from "js-cookie";
-import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export async function logOut() {
-  Cookies.remove("access_token");
-
-  revalidatePath("/");
-  revalidatePath("/products");
-  revalidatePath("/sales");
-  revalidatePath("/users");
+  console.log("asdas");
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("access_token");
+  }
+  redirect("/login");
 }

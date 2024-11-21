@@ -1,11 +1,15 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import Cookies from "js-cookie";
 import { LogInIcon } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "../_components/ui/button";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import {
   Form,
   FormControl,
@@ -15,12 +19,7 @@ import {
   FormMessage,
 } from "../_components/ui/form";
 import { Input } from "../_components/ui/input";
-import Link from "next/link";
 import { signIn } from "./_actions/sign-in";
-import Cookies from "js-cookie";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { getToken } from "../_services/get-token";
 
 const formSchema = z.object({
   login: z.string({ message: "O Login é obrigatório." }).trim().min(1, {
@@ -36,12 +35,6 @@ type FormSchema = z.infer<typeof formSchema>;
 export default function LoginPage() {
   const router = useRouter();
 
-  const token = getToken();
-
-  if (token) {
-    router.push("/");
-  }
-
   async function onSubmit(data: FormSchema) {
     console.log(data);
     try {
@@ -49,7 +42,11 @@ export default function LoginPage() {
 
       const { access_token } = response.data;
 
-      Cookies.set("access_token", access_token, { expires: 7 });
+      // if (typeof window !== "undefined") {
+      //   localStorage.setItem("access_token", access_token);
+      // }
+
+      Cookies.set("access_token", access_token);
 
       toast.success("Login realizado com sucesso");
       router.push("/");

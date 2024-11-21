@@ -13,9 +13,9 @@ export default async function HomePage({ searchParams: { month } }: HomeProps) {
 
   console.log(token);
 
-  if (!token) {
-    redirect("/login");
-  }
+  // if (!token) {
+  //   redirect("/login");
+  // }
 
   const monthIsInvalid = !month || !isMatch(month, "MM");
 

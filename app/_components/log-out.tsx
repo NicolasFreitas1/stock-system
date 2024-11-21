@@ -3,7 +3,9 @@ import { Button } from "./ui/button";
 
 export default function LogOut() {
   async function handleLogOut() {
-    await logOut();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("access_token");
+    }
   }
 
   return (

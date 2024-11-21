@@ -1,5 +1,5 @@
-import Cookies from "js-cookie";
-
 export function getToken() {
-  return Cookies.get("access_token");
+  return typeof window !== "undefined"
+    ? localStorage.getItem("access_token")
+    : null;
 }

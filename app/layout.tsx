@@ -22,7 +22,7 @@ export default function RootLayout({
       <body className={`${mulish.className} dark antialiased`}>
         {children}
 
-        <Toaster />
+        <Toaster position="top-right"/>
       </body>
     </html>
   );

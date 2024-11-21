@@ -2,12 +2,21 @@ import { redirect } from "next/navigation";
 import { isMatch } from "date-fns";
 import Navbar from "../_components/navbar";
 import TimeSelect from "./_components/time-select";
+import { getToken } from "../_services/get-token";
 
 interface HomeProps {
   searchParams: { month: string };
 }
 
 export default async function HomePage({ searchParams: { month } }: HomeProps) {
+  const token = getToken();
+
+  console.log(token);
+
+  if (!token) {
+    redirect("/login");
+  }
+
   const monthIsInvalid = !month || !isMatch(month, "MM");
 
   if (monthIsInvalid) {

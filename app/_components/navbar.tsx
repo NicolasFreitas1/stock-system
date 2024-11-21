@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import LogOut from "./log-out";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -53,6 +54,7 @@ export default function Navbar() {
         </Link>
       </div>
       {/* DIREITA */}
+      <LogOut />
     </nav>
   );
 }

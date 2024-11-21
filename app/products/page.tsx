@@ -1,10 +1,18 @@
+import { redirect } from "next/navigation";
 import Navbar from "../_components/navbar";
 import { DataTable } from "../_components/ui/data-table";
 import { ScrollArea } from "../_components/ui/scroll-area";
+import { getToken } from "../_services/get-token";
 import { productColumns } from "./_columns";
 import { getProducts } from "./_data/get-products";
 
 export default async function ProductsPage() {
+  const token = getToken();
+
+  if (!token) {
+    redirect("/login");
+  }
+
   const products = await getProducts();
 
   return (

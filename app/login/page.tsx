@@ -23,10 +23,10 @@ import { useRouter } from "next/navigation";
 import { getToken } from "../_services/get-token";
 
 const formSchema = z.object({
-  login: z.string().trim().min(1, {
+  login: z.string({ message: "O Login é obrigatório." }).trim().min(1, {
     message: "O Login é obrigatório.",
   }),
-  password: z.string().trim().min(1, {
+  password: z.string({ message: "A senha é obrigatório." }).trim().min(1, {
     message: "A senha é obrigatório.",
   }),
 });
@@ -51,7 +51,7 @@ export default function LoginPage() {
 
       Cookies.set("access_token", access_token, { expires: 7 });
 
-      toast.info("Login realizado com sucesso");
+      toast.success("Login realizado com sucesso");
       router.push("/");
     } catch (error) {
       console.log(error);
@@ -119,7 +119,7 @@ export default function LoginPage() {
               )}
             />
 
-            <Button type="submit" variant="outline" className="w-full">
+            <Button type="submit" className="w-full">
               <LogInIcon className="mr-2" />
               Fazer login
             </Button>

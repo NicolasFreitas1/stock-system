@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Cookies from "js-cookie";
 import { LogInIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,7 +18,8 @@ import {
   FormMessage,
 } from "../_components/ui/form";
 import { Input } from "../_components/ui/input";
-import { signIn } from "./_actions/sign-in";
+// import { signIn } from "./_actions/sign-in";
+import { signIn } from "next-auth/react";
 
 const formSchema = z.object({
   login: z.string({ message: "O Login é obrigatório." }).trim().min(1, {
@@ -38,15 +38,10 @@ export default function LoginPage() {
   async function onSubmit(data: FormSchema) {
     console.log(data);
     try {
-      const response = await signIn(data);
-
-      const { access_token } = response.data;
-
-      // if (typeof window !== "undefined") {
-      //   localStorage.setItem("access_token", access_token);
-      // }
-
-      Cookies.set("access_token", access_token);
+      signIn("credentials", {
+        ...data,
+        callbackUrl: "/",
+      });
 
       toast.success("Login realizado com sucesso");
       router.push("/");

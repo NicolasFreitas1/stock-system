@@ -1,12 +1,24 @@
+"use server";
+
+import { apiServer } from "@/app/_lib/axios";
+import { Product } from "@/app/_types/product";
+import { AxiosError } from "axios";
+import { redirect } from "next/navigation";
+
 export async function getProducts() {
-  return [
-    {
-      id: "ed3ea2d9-2850-46b9-8135-6bffa7442f94",
-      name: "TESTE",
-      quantity: 10,
-      value: 1,
-      barcode: "12312432131231",
-      createdAt: "2024-09-30T02:17:24.430Z",
-    },
-  ];
+  try {
+    const { data } = await apiServer.get<Product[]>("/product");
+
+    return data;
+  } catch (error) {
+    console.log(error);
+
+    if (error instanceof AxiosError) {
+      if (error.status === 401) {
+        redirect("/login");
+      }
+
+      throw new Error(error.message);
+    }
+  }
 }

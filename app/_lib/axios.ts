@@ -1,16 +1,31 @@
+import { getCookie } from "cookies-next";
 import axios from "axios";
+import { cookies } from "next/headers";
 
-const api = axios.create({
+export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
-api.interceptors.request.use((config) => {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+apiClient.interceptors.request.use((config) => {
+  const tokenClient = getCookie("jwt");
+
+  if (tokenClient) {
+    config.headers.Authorization = `Bearer ${tokenClient}`;
   }
+
   return config;
 });
 
-export default api;
+export const apiServer = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+});
+
+apiServer.interceptors.request.use((config) => {
+  const tokenServer = cookies().get("jwt");
+
+  if (tokenServer && tokenServer.value) {
+    config.headers.Authorization = `Bearer ${tokenServer.value}`;
+  }
+
+  return config;
+});

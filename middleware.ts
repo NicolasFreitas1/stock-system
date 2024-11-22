@@ -1,20 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export default async function middleware(req: NextRequest) {
-  const token = req.cookies.get("access_token")?.value;
-  //   const token = localStorage.getItem("access_token");
+  // // const session = await getServerSession();
+  // console.log("🚀 ~ middleware ~ session:", session);
 
-  const protectedRoutes = ["/", "/products", "/sales", "/users"];
-  console.log(req.nextUrl.pathname);
-  console.log(token);
+  // // const token = cookies().get("jwt");
 
-  if (protectedRoutes.includes(req.nextUrl.pathname)) {
-    if (!token) {
-      console.log("testess");
+  // const protectedRoutes = ["/", "/products", "/sales", "/users"];
 
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-  }
+  // if (protectedRoutes.includes(req.nextUrl.pathname)) {
+  //   if (!session) {
+  //     return NextResponse.redirect(new URL("/login", req.url));
+  //   }
+  // }
 
   return NextResponse.next();
 }

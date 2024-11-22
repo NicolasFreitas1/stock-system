@@ -1,16 +1,12 @@
-import { logOut } from "../_actions/log-out";
+"use client";
+
+import { signOut } from "next-auth/react";
 import { Button } from "./ui/button";
 
 export default function LogOut() {
-  async function handleLogOut() {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("access_token");
-    }
-  }
-
   return (
     <>
-      <Button variant="outline" size="lg" onClick={handleLogOut}>
+      <Button variant="outline" size="lg" onClick={() => signOut()}>
         Sair
       </Button>
     </>

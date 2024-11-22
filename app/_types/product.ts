@@ -5,4 +5,5 @@ export interface Product {
   value: number;
   barcode: string;
   createdAt: string;
+  tags: string[];
 }

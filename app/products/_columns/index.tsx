@@ -80,7 +80,7 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     accessorKey: "actions",
-    header: "",
+    header: "Ações",
     cell: ({ row: { original: product } }) => {
       return (
         <div className="space-x-1">

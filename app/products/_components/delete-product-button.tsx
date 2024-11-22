@@ -24,7 +24,7 @@ export default function DeleteProductButton({
   async function handleConfirmDeleteClick() {
     try {
       await deleteProduct({ productId });
-      toast.success("Transação deletada com sucesso");
+      toast.success("Produto deletado com sucesso");
     } catch (error) {
       toast.error("Ocorreu um erro ao deletar a transação");
       console.log(error);
@@ -41,7 +41,7 @@ export default function DeleteProductButton({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Você deseja realmente deletar essa transação?
+            Você deseja realmente deletar esse produto?
           </AlertDialogTitle>
           <AlertDialogDescription>
             Essa ação não pode ser desfeita.

@@ -21,8 +21,8 @@ export async function upsertUser(data: UpsertUserPayload) {
       data,
     });
     return response.data;
-  } catch (error: any) {
-    console.error("Erro ao enviar usuário:", error.response?.data || error.message);
+  } catch (error: unknown) {
+    console.error("Erro ao enviar usuário:", error);
     throw new Error("Erro ao salvar o usuário");
   }
 }

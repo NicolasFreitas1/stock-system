@@ -15,7 +15,7 @@ const handler = NextAuth({
         login: { label: "Login", type: "text", placeholder: "jsmith" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials,) {
+      async authorize(credentials, req) {
         console.log("🚀 ~ authorize ~ credentials:", credentials);
         if (!credentials) {
           return null;

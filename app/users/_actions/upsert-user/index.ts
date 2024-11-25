@@ -9,8 +9,8 @@ interface UpsertUserPayload {
 
 export async function upsertUser(data: UpsertUserPayload) {
   const url = data.id
-    ? `http://localhost:5000/user/${data.id}` // Atualizar usuário (PUT)
-    : "http://localhost:5000/user"; // Criar usuário (POST)
+    ? `http://localhost:5001/user/${data.id}` // Atualizar usuário (PUT)
+    : "http://localhost:5001/user"; // Criar usuário (POST)
 
   const method = data.id ? "put" : "post";
 
@@ -21,7 +21,7 @@ export async function upsertUser(data: UpsertUserPayload) {
       data,
     });
     return response.data;
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Erro ao enviar usuário:", error);
     throw new Error("Erro ao salvar o usuário");
   }

@@ -1,19 +1,16 @@
 "use server";
 
+import { apiServer } from "@/app/_lib/axios";
 import { revalidatePath } from "next/cache";
 
 export async function deleteSale(saleId: string): Promise<void> {
-  const response = await fetch(`http://localhost:5000/sale/${saleId}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  try {
+    await apiServer.delete(`/sale/${saleId}`);
 
-  if (!response.ok) {
-    throw new Error("Erro ao deletar a venda");
+    revalidatePath("/sales");
+  } catch (e) {
+    console.log(e);
+
+    throw new Error("Erro ao deletar venda");
   }
-
-  // Revalida o caminho para atualizar a listagem
-  revalidatePath("/sales");
 }

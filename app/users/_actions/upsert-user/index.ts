@@ -1,3 +1,5 @@
+"use server";
+
 import { apiServer } from "@/app/_lib/axios";
 
 interface UpsertUserPayload {

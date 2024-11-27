@@ -5,6 +5,8 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Navbar from "../_components/navbar";
 import TimeSelect from "./_components/time-select";
+import { getDashboard } from "../_data/get-dashboard";
+import { LowStockProducts } from "./_components/low-stock-products";
 
 interface HomeProps {
   searchParams: { month: string };
@@ -22,6 +24,10 @@ export default async function HomePage({ searchParams: { month } }: HomeProps) {
   if (monthIsInvalid) {
     redirect(`?month=${new Date().getMonth() + 1}`);
   }
+
+  const dashboard = await getDashboard();
+
+  console.log(dashboard);
 
   return (
     <>
@@ -41,6 +47,11 @@ export default async function HomePage({ searchParams: { month } }: HomeProps) {
             </div>
           </div>
           {/* TABELA DE ULTIMAS VENDAS */}
+          {dashboard && (
+            <LowStockProducts
+              lowStockProducts={dashboard?.lowQuantityProducts}
+            />
+          )}
         </div>
       </div>
     </>

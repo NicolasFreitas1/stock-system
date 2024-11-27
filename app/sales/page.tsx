@@ -5,7 +5,7 @@ import { ScrollArea } from "../_components/ui/scroll-area";
 import { getSales } from "./_data/get-sales";
 import { redirect } from "next/navigation";
 import { saleColumns } from "./_columns";
-import { AddSaleButton } from "./_components/add-sale-button";
+import { AddSaleButton } from "../_components/add-sale-button";
 
 export default async function UsersPage() {
   const session = await getServerSession();

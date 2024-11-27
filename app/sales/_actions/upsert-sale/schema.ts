@@ -1,3 +1,4 @@
+import { PaymentMethod } from "@/app/_constants/sale";
 import { z } from "zod";
 
 export const upsertSaleSchema = z.object({
@@ -5,6 +6,7 @@ export const upsertSaleSchema = z.object({
   productId: z.string().uuid(),
   quantity: z.number(),
   sellerId: z.string().uuid(),
+  paymentMethod: z.nativeEnum(PaymentMethod),
 });
 
 export type UpsertSaleSchema = z.infer<typeof upsertSaleSchema>;

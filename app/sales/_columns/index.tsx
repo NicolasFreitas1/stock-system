@@ -4,6 +4,7 @@ import { SaleWithNames } from "@/app/_types/sale-with-name";
 import { ColumnDef } from "@tanstack/react-table";
 import DeleteSaleButton from "../_components/delete-sale-button";
 import EditSaleButton from "../_components/edit-sale-button";
+import { PAYMENT_METHOD_LABELS } from "@/app/_constants/sale";
 
 export const saleColumns: ColumnDef<SaleWithNames>[] = [
   {
@@ -33,6 +34,12 @@ export const saleColumns: ColumnDef<SaleWithNames>[] = [
         style: "currency",
         currency: "BRL",
       }).format(Number(sale.value)),
+  },
+  {
+    accessorKey: "paymentMethod",
+    header: "Método de pagamento",
+    cell: ({ row: { original: sale } }) =>
+      PAYMENT_METHOD_LABELS[sale.paymentMethod],
   },
   {
     accessorKey: "sellerName",

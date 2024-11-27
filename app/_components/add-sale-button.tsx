@@ -3,7 +3,7 @@
 import { Button } from "@/app/_components/ui/button";
 import { PlusCircleIcon } from "lucide-react";
 import { useState } from "react";
-import { UpsertSaleDialog } from "./upsert-sale-dialog";
+import { UpsertSaleDialog } from "../sales/_components/upsert-sale-dialog";
 
 export function AddSaleButton() {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);

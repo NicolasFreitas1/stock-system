@@ -36,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
+import { PAYMENT_METHOD_OPTIONS, PaymentMethod } from "@/app/_constants/sale";
 
 interface UpsertSaleDialogProps {
   isOpen: boolean;
@@ -49,6 +50,7 @@ const formSchema = z.object({
   quantity: z.number().int().positive("A quantidade deve ser positiva."),
   sellerId: z.string().uuid("Vendedor inválido."),
   soldAt: z.date(),
+  paymentMethod: z.nativeEnum(PaymentMethod),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
@@ -218,6 +220,33 @@ export function UpsertSaleDialog({
                 <FormItem>
                   <FormLabel>Data da venda</FormLabel>
                   <DatePicker value={field.value} onChange={field.onChange} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="paymentMethod"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Método de pagamento</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PAYMENT_METHOD_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

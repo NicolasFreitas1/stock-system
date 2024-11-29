@@ -43,24 +43,24 @@ const handler = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    async session({ session, token }) {
-      // Adiciona o campo isAdmin na sessão
-      session.user = {
-        ...session.user,
-        isAdmin: token.isAdmin as boolean, // Adiciona isAdmin ao user da sessão
-      };
-      return session;
-    },
-    async jwt({ token, user }) {
-      if (user) {
-        token.isAdmin = user.isAdmin; // Adiciona isAdmin
-      }
-      console.log("JWT Token:", token); // Depuração
-      return token;
-    },
-  },
-  secret: process.env.NEXTAUTH_SECRET,
+  // callbacks: {
+  //   async session({ session, token }) {
+  //     // Adiciona o campo isAdmin na sessão
+  //     session.user = {
+  //       ...session.user,
+  //       isAdmin: token.isAdmin as boolean, // Adiciona isAdmin ao user da sessão
+  //     };
+  //     return session;
+  //   },
+  //   async jwt({ token, user }) {
+  //     if (user) {
+  //       token.isAdmin = user.isAdmin; // Adiciona isAdmin
+  //     }
+  //     console.log("JWT Token:", token); // Depuração
+  //     return token;
+  //   },
+  // },
+  // secret: process.env.NEXTAUTH_SECRET,
 });
 
 export { handler as GET, handler as POST };

@@ -4,5 +4,6 @@ export interface LoginResponse {
     id: string;
     name: string;
     login: string;
+    isAdmin: boolean;
   };
 }

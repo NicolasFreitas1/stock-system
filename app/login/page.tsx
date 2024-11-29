@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LogInIcon } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -18,7 +17,6 @@ import {
   FormMessage,
 } from "../_components/ui/form";
 import { Input } from "../_components/ui/input";
-// import { signIn } from "./_actions/sign-in";
 import { signIn } from "next-auth/react";
 
 const formSchema = z.object({
@@ -117,10 +115,6 @@ export default function LoginPage() {
             </Button>
           </form>
         </Form>
-        <Link href="" className="mt-4 text-primary text-bold">
-          {" "}
-          Criar conta
-        </Link>
       </div>
       {/* DIREITA */}
       <div className="relative h-full w-full">

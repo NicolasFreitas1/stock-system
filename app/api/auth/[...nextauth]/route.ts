@@ -12,7 +12,7 @@ const handler = NextAuth({
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        login: { label: "Login", type: "text", placeholder: "jsmith" },
+        login: { label: "Login", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
@@ -33,6 +33,7 @@ const handler = NextAuth({
           return {
             id: user.id,
             name: user.name,
+            isAdmin: user.isAdmin,
           };
         } catch (error) {
           console.log(error);
@@ -42,6 +43,24 @@ const handler = NextAuth({
       },
     }),
   ],
+  callbacks: {
+    async session({ session, token }) {
+      // Adiciona o campo isAdmin na sessão
+      session.user = {
+        ...session.user,
+        isAdmin: token.isAdmin as boolean, // Adiciona isAdmin ao user da sessão
+      };
+      return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.isAdmin = user.isAdmin; // Adiciona isAdmin
+      }
+      console.log("JWT Token:", token); // Depuração
+      return token;
+    },
+  },
+  secret: process.env.NEXTAUTH_SECRET,
 });
 
 export { handler as GET, handler as POST };

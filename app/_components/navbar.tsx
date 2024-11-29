@@ -2,10 +2,36 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { getUserSession } from "../_action/get-user-session";
 import LogOut from "./log-out";
 
 export default function Navbar() {
+  const [userSession, setUserSession] = useState<
+    | {
+        name?: string | null;
+        email?: string | null;
+        image?: string | null;
+        isAdmin?: boolean | null;
+      }
+    | undefined
+  >(undefined);
+
   const pathname = usePathname();
+
+  async function getServerUserSession() {
+    const serverUserSession = await getUserSession();
+
+    console.log(serverUserSession);
+
+    setUserSession(serverUserSession);
+  }
+
+  useEffect(() => {
+    getServerUserSession();
+
+    console.log(userSession);
+  }, [userSession]);
 
   return (
     <nav className="flex justify-between border-b border-solid px-8 py-4">
@@ -42,6 +68,7 @@ export default function Navbar() {
         >
           Produtos
         </Link>
+
         <Link
           href="/users"
           className={
@@ -53,7 +80,6 @@ export default function Navbar() {
           Usuários
         </Link>
       </div>
-      {/* DIREITA */}
       <LogOut />
     </nav>
   );

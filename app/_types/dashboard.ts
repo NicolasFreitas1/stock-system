@@ -1,11 +1,11 @@
 import { Product } from "./product";
-import { SalePerProduct } from "./sale-per-product";
-import { SalesBySeller } from "./sales-by-seller";
+import { SalePerProductName } from "./sale-per-product-with-product-name";
+import { SalesBySellerName } from "./sales-by-seller-name";
 import { StockMetrics } from "./stock-metrics";
 
 export interface Dashboard {
-  salesPerProduct: SalePerProduct[];
-  salesBySeller: SalesBySeller[];
+  salesPerProduct: SalePerProductName[];
+  salesBySeller: SalesBySellerName[];
   stockMetrics: StockMetrics;
   lowQuantityProducts: Product[];
 }

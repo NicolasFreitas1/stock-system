@@ -1,22 +1,18 @@
+import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
-export default async function middleware(req: NextRequest) {
-  // // const session = await getServerSession();
-  // console.log("🚀 ~ middleware ~ session:", session);
+export async function middleware(req: NextRequest) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-  // // const token = cookies().get("jwt");
+  if (!token || !token.isAdmin) {
+    // Redireciona para a página de login ou outra página
+    return new Response("Unauthorized", { status: 401 });
+  }
 
-  // const protectedRoutes = ["/", "/products", "/sales", "/users"];
-
-  // if (protectedRoutes.includes(req.nextUrl.pathname)) {
-  //   if (!session) {
-  //     return NextResponse.redirect(new URL("/login", req.url));
-  //   }
-  // }
-
-  return NextResponse.next();
+  return NextResponse.next(); // Permite o acesso
 }
 
+// Configura o middleware apenas para a rota '/users'
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|.*\\.png$).*)"],
+  matcher: "/users",
 };

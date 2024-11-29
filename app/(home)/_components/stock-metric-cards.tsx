@@ -1,9 +1,4 @@
-import {
-  Package,
-  SkullIcon,
-  TriangleAlertIcon,
-  WalletIcon,
-} from "lucide-react";
+import { Package, TriangleAlertIcon, WalletIcon, XIcon } from "lucide-react";
 import { MetricCard } from "./metric-card";
 
 interface StockMetricCardsProps {
@@ -44,7 +39,7 @@ export function StockMetricCards({
           value={totalInRisk}
         />
         <MetricCard
-          icon={<SkullIcon size={16} className="text-red-500" />}
+          icon={<XIcon size={16} className="text-red-500" />}
           title="Itens Fora de Estoque"
           value={totalMissing}
         />

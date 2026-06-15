@@ -57,15 +57,27 @@ export class EditSaleUseCase {
       return left(new ResourceNotFoundError())
     }
 
-    if (productId !== sale.productId.toString()) {
-      product.increaseStock(sale.quantity)
+    const productChanged = productId !== sale.productId.toString()
 
-      await this.productsRepository.save(product)
+    if (productChanged) {
+      const previousProduct = await this.productsRepository.findById(
+        sale.productId.toString(),
+      )
+
+      if (!previousProduct) {
+        return left(new ResourceNotFoundError())
+      }
+
+      previousProduct.increaseStock(sale.quantity)
+      product.decreaseStock(quantity)
+
+      await this.productsRepository.save(previousProduct)
+    } else {
+      product.increaseStock(sale.quantity)
+      product.decreaseStock(quantity)
     }
 
-    product.increaseStock(sale.quantity)
-    product.decreaseStock(quantity)
-
+    sale.productId = product.id
     sale.quantity = quantity
     sale.sellerId = seller.id
     sale.value = product.value * quantity

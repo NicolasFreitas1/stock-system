@@ -93,6 +93,8 @@ Esta secao documenta 3 exemplos de smells encontrados na aplicacao. A mesma estr
 - O limite de estoque em risco foi nomeado com `LOW_STOCK_THRESHOLD`, removendo o numero magico `10` dos repositorios.
 - Logs de debug foram removidos do fluxo de cadastro/edicao de produtos no frontend.
 - Foram adicionados testes unitarios para criacao de venda com estoque suficiente e rejeicao de venda com estoque insuficiente.
+- Removida dependencia morta (`dead dependency`): o `EditUserUseCase` injetava `HashGenerator` no construtor sem nunca utiliza-lo. Como a edicao de usuario altera apenas `name` e `login`, a dependencia foi removida, reduzindo acoplamento falso.
+- Corrigida duplicacao de logica e bug de estoque no `EditSaleUseCase`. A chamada `product.increaseStock(sale.quantity)` aparecia duplicada, devolvendo o estoque em dobro, e, ao trocar o produto da venda, o estoque era restaurado no produto errado (o novo, em vez do antigo). Agora, quando o produto muda, carrega-se o produto anterior (`sale.productId`) para devolver o estoque a ele e desconta-se do novo produto; quando o produto e o mesmo, a devolucao e o desconto ocorrem no mesmo registro. O campo `sale.productId`, que nao era persistido apos a troca, passou a ser atualizado.
 
 ## Divisao sugerida para 5 integrantes
 

@@ -1,4 +1,7 @@
-import { PaginationParams } from '@/core/repositories/pagination-params'
+import {
+  PaginationParams,
+  toSkipTake,
+} from '@/core/repositories/pagination-params'
 import { SalesRepository } from '@/domain/stock/application/repositories/sales-repository'
 import { Sale } from '@/domain/stock/enterprise/entities/sale'
 import { Injectable } from '@nestjs/common'
@@ -10,10 +13,7 @@ export class PrismaSalesRepository implements SalesRepository {
   constructor(private prisma: PrismaService) {}
 
   async findMany({ page }: PaginationParams): Promise<Sale[]> {
-    const sales = await this.prisma.sale.findMany({
-      skip: (page - 1) * 20,
-      take: 20,
-    })
+    const sales = await this.prisma.sale.findMany(toSkipTake(page))
 
     return sales.map(PrismaSaleMapper.toDomain)
   }

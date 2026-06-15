@@ -1,6 +1,10 @@
-import { PaginationParams } from '@/core/repositories/pagination-params'
+import {
+  PaginationParams,
+  toSkipTake,
+} from '@/core/repositories/pagination-params'
 import { ProductsRepository } from '@/domain/stock/application/repositories/products-repository'
 import {
+  LOW_STOCK_LIST_LIMIT,
   LOW_STOCK_THRESHOLD,
   Product,
 } from '@/domain/stock/enterprise/entities/product'
@@ -15,10 +19,7 @@ export class PrismaProductsRepository implements ProductsRepository {
   constructor(private prisma: PrismaService) {}
 
   async findMany({ page }: PaginationParams): Promise<Product[]> {
-    const products = await this.prisma.product.findMany({
-      skip: (page - 1) * 20,
-      take: 20,
-    })
+    const products = await this.prisma.product.findMany(toSkipTake(page))
 
     return products.map(PrismaProductMapper.toDomain)
   }
@@ -33,7 +34,7 @@ export class PrismaProductsRepository implements ProductsRepository {
       orderBy: {
         quantity: 'asc',
       },
-      take: 15,
+      take: LOW_STOCK_LIST_LIMIT,
     })
 
     return products.map(PrismaProductMapper.toDomain)
@@ -43,8 +44,7 @@ export class PrismaProductsRepository implements ProductsRepository {
     page,
   }: PaginationParams): Promise<ProductWithTags[]> {
     const products = await this.prisma.product.findMany({
-      skip: (page - 1) * 20,
-      take: 20,
+      ...toSkipTake(page),
       include: {
         productTags: {
           include: {

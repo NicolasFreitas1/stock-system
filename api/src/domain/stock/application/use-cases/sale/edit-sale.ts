@@ -1,6 +1,5 @@
 import { Either, left, right } from '@/core/either'
 import { Injectable } from '@nestjs/common'
-import { NameAlreadyInUseError } from '../__errors/name-already-in-use-error'
 import { PaymentMethod, Sale } from '@/domain/stock/enterprise/entities/sale'
 import { SalesRepository } from '../../repositories/sales-repository'
 import { ResourceNotFoundError } from '@/core/errors/errors/resource-not-found-error'
@@ -17,7 +16,7 @@ interface EditSaleUseCaseRequest {
 }
 
 type EditSaleUseCaseResponse = Either<
-  ResourceNotFoundError | NameAlreadyInUseError,
+  ResourceNotFoundError,
   {
     sale: Sale
   }
@@ -77,12 +76,14 @@ export class EditSaleUseCase {
       product.decreaseStock(quantity)
     }
 
-    sale.productId = product.id
-    sale.quantity = quantity
-    sale.sellerId = seller.id
-    sale.value = product.value * quantity
-    sale.soldAt = soldAt
-    sale.paymentMethod = paymentMethod
+    sale.updateDetails({
+      productId: product.id,
+      sellerId: seller.id,
+      quantity,
+      value: product.value * quantity,
+      soldAt,
+      paymentMethod,
+    })
 
     await this.salesRepository.save(sale)
     await this.productsRepository.save(product)

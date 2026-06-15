@@ -1,4 +1,7 @@
-import { PaginationParams } from '@/core/repositories/pagination-params'
+import {
+  DEFAULT_PAGE_SIZE,
+  PaginationParams,
+} from '@/core/repositories/pagination-params'
 import { SalesRepository } from '@/domain/stock/application/repositories/sales-repository'
 import { Sale } from '@/domain/stock/enterprise/entities/sale'
 
@@ -6,7 +9,10 @@ export class InMemorySalesRepository implements SalesRepository {
   public items: Sale[] = []
 
   async findMany({ page }: PaginationParams): Promise<Sale[]> {
-    return this.items.slice((page - 1) * 20, page * 20)
+    return this.items.slice(
+      (page - 1) * DEFAULT_PAGE_SIZE,
+      page * DEFAULT_PAGE_SIZE,
+    )
   }
 
   async findById(id: string): Promise<Sale | null> {

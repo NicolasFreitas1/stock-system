@@ -1,4 +1,7 @@
-import { PaginationParams } from '@/core/repositories/pagination-params'
+import {
+  PaginationParams,
+  toSkipTake,
+} from '@/core/repositories/pagination-params'
 import { ProductTagsRepository } from '@/domain/stock/application/repositories/product-tags-repository'
 import { ProductTag } from '@/domain/stock/enterprise/entities/product-tag'
 import { Injectable } from '@nestjs/common'
@@ -10,10 +13,7 @@ export class PrismaProductTagsRepository implements ProductTagsRepository {
   constructor(private prisma: PrismaService) {}
 
   async findMany({ page }: PaginationParams): Promise<ProductTag[]> {
-    const productTags = await this.prisma.productTag.findMany({
-      skip: (page - 1) * 20,
-      take: 20,
-    })
+    const productTags = await this.prisma.productTag.findMany(toSkipTake(page))
 
     return productTags.map(PrismaProductTagMapper.toDomain)
   }

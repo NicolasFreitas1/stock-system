@@ -1,4 +1,7 @@
-import { PaginationParams } from '@/core/repositories/pagination-params'
+import {
+  PaginationParams,
+  toSkipTake,
+} from '@/core/repositories/pagination-params'
 import { UsersRepository } from '@/domain/stock/application/repositories/users-repository'
 import { User } from '@/domain/stock/enterprise/entities/user'
 import { Injectable } from '@nestjs/common'
@@ -10,10 +13,7 @@ export class PrismaUsersRepository implements UsersRepository {
   constructor(private prisma: PrismaService) {}
 
   async findMany({ page }: PaginationParams): Promise<User[]> {
-    const users = await this.prisma.user.findMany({
-      skip: (page - 1) * 20,
-      take: 20,
-    })
+    const users = await this.prisma.user.findMany(toSkipTake(page))
 
     return users.map(PrismaUserMapper.toDomain)
   }

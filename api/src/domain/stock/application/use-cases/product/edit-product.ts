@@ -1,6 +1,5 @@
 import { Either, left, right } from '@/core/either'
 import { Injectable } from '@nestjs/common'
-import { NameAlreadyInUseError } from '../__errors/name-already-in-use-error'
 import { Product } from '@/domain/stock/enterprise/entities/product'
 import { ProductsRepository } from '../../repositories/products-repository'
 import { ResourceNotFoundError } from '@/core/errors/errors/resource-not-found-error'
@@ -14,7 +13,7 @@ interface EditProductUseCaseRequest {
 }
 
 type EditProductUseCaseResponse = Either<
-  ResourceNotFoundError | NameAlreadyInUseError,
+  ResourceNotFoundError,
   {
     product: Product
   }
@@ -37,10 +36,7 @@ export class EditProductUseCase {
       return left(new ResourceNotFoundError())
     }
 
-    product.name = name
-    product.barcode = barcode
-    product.quantity = quantity
-    product.value = value
+    product.updateDetails({ name, barcode, quantity, value })
 
     await this.productsRepository.save(product)
 

@@ -1,4 +1,7 @@
-import { PaginationParams } from '@/core/repositories/pagination-params'
+import {
+  PaginationParams,
+  toSkipTake,
+} from '@/core/repositories/pagination-params'
 import { TagsRepository } from '@/domain/stock/application/repositories/tags-repository'
 import { Tag } from '@/domain/stock/enterprise/entities/tag'
 import { Injectable } from '@nestjs/common'
@@ -10,10 +13,7 @@ export class PrismaTagsRepository implements TagsRepository {
   constructor(private prisma: PrismaService) {}
 
   async findMany({ page }: PaginationParams): Promise<Tag[]> {
-    const tags = await this.prisma.tag.findMany({
-      skip: (page - 1) * 20,
-      take: 20,
-    })
+    const tags = await this.prisma.tag.findMany(toSkipTake(page))
 
     return tags.map(PrismaTagMapper.toDomain)
   }

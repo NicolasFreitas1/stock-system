@@ -2,7 +2,6 @@ import { InMemoryProductsRepository } from 'test/repositories/in-memory-products
 import { GetProductByIdUseCase } from '../get-product-by-id'
 import { ResourceNotFoundError } from '@/core/errors/errors/resource-not-found-error'
 import { Product } from '@/domain/stock/enterprise/entities/product'
-import { UniqueEntityId } from '@/core/entities/unique-entity-id'
 
 let inMemoryProductsRepository: InMemoryProductsRepository
 let sut: GetProductByIdUseCase

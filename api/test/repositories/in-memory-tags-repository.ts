@@ -1,4 +1,7 @@
-import { PaginationParams } from '@/core/repositories/pagination-params'
+import {
+  DEFAULT_PAGE_SIZE,
+  PaginationParams,
+} from '@/core/repositories/pagination-params'
 import { TagsRepository } from '@/domain/stock/application/repositories/tags-repository'
 import { Tag } from '@/domain/stock/enterprise/entities/tag'
 
@@ -6,8 +9,11 @@ export class InMemoryTagsRepository implements TagsRepository {
   public items: Tag[] = []
 
   async findMany({ page }: PaginationParams): Promise<Tag[]> {
-    const products = this.items.slice((page - 1) * 20, page * 20)
-    return products
+    const tags = this.items.slice(
+      (page - 1) * DEFAULT_PAGE_SIZE,
+      page * DEFAULT_PAGE_SIZE,
+    )
+    return tags
   }
 
   async findById(id: string): Promise<Tag | null> {

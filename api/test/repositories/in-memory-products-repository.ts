@@ -1,4 +1,7 @@
-import { PaginationParams } from '@/core/repositories/pagination-params'
+import {
+  DEFAULT_PAGE_SIZE,
+  PaginationParams,
+} from '@/core/repositories/pagination-params'
 import { ProductsRepository } from '@/domain/stock/application/repositories/products-repository'
 import {
   LOW_STOCK_THRESHOLD,
@@ -10,7 +13,10 @@ export class InMemoryProductsRepository implements ProductsRepository {
   public items: Product[] = []
 
   async findMany({ page }: PaginationParams): Promise<Product[]> {
-    const products = this.items.slice((page - 1) * 20, page * 20)
+    const products = this.items.slice(
+      (page - 1) * DEFAULT_PAGE_SIZE,
+      page * DEFAULT_PAGE_SIZE,
+    )
     return products
   }
 

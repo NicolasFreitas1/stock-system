@@ -20,6 +20,15 @@ export interface SaleProps {
   paymentMethod: PaymentMethod
 }
 
+export interface SaleDetailsUpdate {
+  productId: UniqueEntityId
+  sellerId: UniqueEntityId
+  quantity: number
+  value: number
+  soldAt: Date
+  paymentMethod: PaymentMethod
+}
+
 export class Sale extends Entity<SaleProps> {
   get value() {
     return this.props.value
@@ -67,6 +76,37 @@ export class Sale extends Entity<SaleProps> {
 
   set sellerId(sellerId: UniqueEntityId) {
     this.props.sellerId = sellerId
+  }
+
+  updateDetails({
+    productId,
+    sellerId,
+    quantity,
+    value,
+    soldAt,
+    paymentMethod,
+  }: SaleDetailsUpdate) {
+    Sale.assertValidQuantity(quantity)
+    Sale.assertValidValue(value)
+
+    this.props.productId = productId
+    this.props.sellerId = sellerId
+    this.props.quantity = quantity
+    this.props.value = value
+    this.props.soldAt = soldAt
+    this.props.paymentMethod = paymentMethod
+  }
+
+  private static assertValidQuantity(quantity: number) {
+    if (quantity <= 0 || !Number.isFinite(quantity)) {
+      throw new Error('Sale quantity must be a positive number.')
+    }
+  }
+
+  private static assertValidValue(value: number) {
+    if (value <= 0 || !Number.isFinite(value)) {
+      throw new Error('Sale value must be a positive number.')
+    }
   }
 
   static create(props: Optional<SaleProps, 'soldAt'>, id?: UniqueEntityId) {

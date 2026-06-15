@@ -1,4 +1,7 @@
-import { PaginationParams } from '@/core/repositories/pagination-params'
+import {
+  DEFAULT_PAGE_SIZE,
+  PaginationParams,
+} from '@/core/repositories/pagination-params'
 import { UsersRepository } from '@/domain/stock/application/repositories/users-repository'
 import { User } from '@/domain/stock/enterprise/entities/user'
 
@@ -6,7 +9,10 @@ export class InMemoryUsersRepository implements UsersRepository {
   public items: User[] = []
 
   async findMany({ page }: PaginationParams): Promise<User[]> {
-    const users = this.items.slice((page - 1) * 20, page * 20)
+    const users = this.items.slice(
+      (page - 1) * DEFAULT_PAGE_SIZE,
+      page * DEFAULT_PAGE_SIZE,
+    )
 
     return users
   }

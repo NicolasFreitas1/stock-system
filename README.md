@@ -12,7 +12,7 @@ Sistema de controle de estoque com API em NestJS e interface web em Next.js. A a
 
 ## Analise inicial de code smells
 
-Esta secao documenta 3 exemplos de smells encontrados na aplicacao. A mesma estrutura pode ser repetida pelo restante do grupo para chegar aos 6+ smells exigidos no trabalho.
+Esta secao documenta 6 exemplos de smells encontrados na aplicacao, atendendo ao minimo exigido no enunciado do trabalho.
 
 ### 1. Duplicacao de regras e tipos de metodo de pagamento
 
@@ -76,6 +76,93 @@ Esta secao documenta 3 exemplos de smells encontrados na aplicacao. A mesma estr
 
 **Resultado esperado:** regras de negocio legiveis, reutilizaveis e protegidas por testes unitarios.
 
+### 4. Numero magico de paginacao (`20`) duplicado em todos os repositorios Prisma
+
+**Arquivos envolvidos:**
+
+- `api/src/infra/database/prisma/repositories/prisma-sales-repository.ts`
+- `api/src/infra/database/prisma/repositories/prisma-users-repository.ts`
+- `api/src/infra/database/prisma/repositories/prisma-products-repository.ts`
+- `api/src/infra/database/prisma/repositories/prisma-tags-repository.ts`
+- `api/src/infra/database/prisma/repositories/prisma-product-tags-repository.ts`
+
+**Problema:** o tamanho de pagina aparece como literal `20` em todas as chamadas `findMany`, sempre na mesma combinacao `skip: (page - 1) * 20, take: 20`. Alem disso, o metodo `findManyWithLowQuantity` fixa um outro numero magico (`take: 15`) sem explicacao. O conhecimento "quantos itens por pagina" esta espalhado pelo codigo, o que dificulta a manutencao: alterar o tamanho da pagina exige editar varios arquivos e ainda corre o risco de algum repositorio ficar fora do padrao.
+
+**Principios relacionados:** evitar numeros magicos, nomes significativos, DRY e Single Source of Truth.
+
+**Estrategia de refatoracao:** extrair os valores para constantes nomeadas em um modulo compartilhado, por exemplo:
+
+- `DEFAULT_PAGE_SIZE = 20` em `api/src/core/repositories/pagination-params.ts`.
+- `LOW_STOCK_LIST_LIMIT = 15` proximo ao dominio de estoque (ou parametro do caso de uso).
+- Helper utilitario `toSkipTake(page)` para encapsular o calculo `skip: (page - 1) * size, take: size`, evitando repetir a aritmetica em cada repositorio.
+
+**Resultado esperado:** o tamanho da pagina passa a ter um nome unico, claro e centralizado, eliminando a duplicacao do calculo `(page - 1) * 20` em cinco arquivos e reduzindo o risco de bugs ao ajustar regras de paginacao.
+
+### 5. Anemic Domain Model: entidades com setters publicos e sem invariantes
+
+**Arquivos envolvidos:**
+
+- `api/src/domain/stock/enterprise/entities/product.ts`
+- `api/src/domain/stock/enterprise/entities/sale.ts`
+- `api/src/domain/stock/enterprise/entities/user.ts`
+- `api/src/domain/stock/application/use-cases/product/edit-product.ts`
+- `api/src/domain/stock/application/use-cases/sale/edit-sale.ts`
+
+**Problema:** as entidades de dominio (`Product`, `Sale`, `User`) expoem setters publicos para praticamente todos os campos, sem qualquer validacao de invariante. Alguns exemplos concretos:
+
+- `Product` permite atribuir `quantity` ou `value` negativos via `product.quantity = -10` ou `product.value = -1` sem reclamar.
+- `Product.decreaseStock(quantity)` nao verifica se `quantity` e positivo nem se o estoque resultante ficaria negativo (a regra `hasAvailableStock` so existe se o caso de uso lembrar de chama-la).
+- `Sale` deixa qualquer outra camada alterar `value`, `quantity`, `productId`, `sellerId`, `paymentMethod`, etc., sem regras.
+- `User` permite alterar `password` direto via setter, sem garantir que esteja hashada (a propria entidade nao distingue senha em texto de hash).
+- Casos de uso como `EditProductUseCase` apenas fazem `product.name = name; product.barcode = barcode; product.quantity = quantity; product.value = value`, ou seja, a logica de negocio "valida" mora no caso de uso (quando mora), e nao na entidade. A entidade vira basicamente um struct.
+
+**Principios relacionados:** encapsulamento, Tell Don't Ask, modelagem rica de dominio (evitar Anemic Domain Model), Single Responsibility Principle e protecao de invariantes.
+
+**Estrategia de refatoracao:**
+
+- Tornar a maior parte dos setters privados ou protected e substituir por metodos com nomes de dominio (`rename`, `changeBarcode`, `adjustStock`, `applyPaymentMethod`, etc.).
+- Centralizar as regras na entidade: `Product.decreaseStock(quantity)` deve lancar/retornar erro se `quantity <= 0` ou se o estoque ficaria negativo, em vez de depender do `hasAvailableStock` ser chamado por fora.
+- Em `User`, separar o conceito de senha em texto (entrada) do hash armazenado; idealmente expor apenas um metodo `changePassword(hashGenerator, newPassword)`.
+- Em `Sale`, criar um metodo `updateDetails({ quantity, productId, sellerId, soldAt, paymentMethod, value })` que aplica todas as alteracoes de uma vez e protege as invariantes (valor coerente com quantidade e produto, etc.).
+- Refatorar os casos de uso (`EditProductUseCase`, `EditSaleUseCase`) para chamar esses metodos da entidade em vez de mutar `props` diretamente.
+
+**Resultado esperado:** entidades de dominio mais ricas, com regras de negocio coesas e protegidas, casos de uso mais magros e menor chance de salvar dados invalidos no banco (por exemplo, um produto com estoque negativo ou uma venda inconsistente).
+
+### 6. Tipos de retorno mentirosos: erros declarados e nunca lancados (Misleading Type Signature)
+
+**Arquivos envolvidos:**
+
+- `api/src/domain/stock/application/use-cases/product/edit-product.ts`
+- `api/src/domain/stock/application/use-cases/sale/edit-sale.ts`
+
+**Problema:** os tipos de resposta dos casos de uso declaram erros que nunca sao realmente retornados:
+
+```ts
+type EditProductUseCaseResponse = Either<
+  ResourceNotFoundError | NameAlreadyInUseError,
+  { product: Product }
+>
+```
+
+```ts
+type EditSaleUseCaseResponse = Either<
+  ResourceNotFoundError | NameAlreadyInUseError,
+  { sale: Sale }
+>
+```
+
+Tanto `EditProductUseCase` quanto `EditSaleUseCase` importam e declaram em seus contratos a possibilidade de retornar `NameAlreadyInUseError`, mas em nenhum momento do `execute()` esse erro e instanciado. O caso de uso so retorna `ResourceNotFoundError`. Isso confunde o leitor (sugere uma regra de negocio que nao existe), induz quem escreve o controller a tratar um caso impossivel (codigo morto) e forca a manutencao de um `import` desnecessario (acoplamento falso entre modulos).
+
+**Principios relacionados:** "Tell the truth" / nomes e tipos honestos, evitar dead code, baixo acoplamento e principio da menor surpresa.
+
+**Estrategia de refatoracao:**
+
+- Se a regra "nome ja em uso" faz sentido para esses casos de uso, implementa-la de verdade (validar duplicidade antes de salvar e retornar `left(new NameAlreadyInUseError(name))`).
+- Caso contrario, remover `NameAlreadyInUseError` do tipo de retorno e do `import` em `edit-product.ts` e `edit-sale.ts`, deixando apenas `ResourceNotFoundError`.
+- Garantir que os controllers correspondentes nao tentem mapear um erro que nunca acontece.
+
+**Resultado esperado:** assinaturas honestas, ausencia de dead code/dead imports e contratos de caso de uso que descrevem exatamente os cenarios reais de falha.
+
 ## Estrategias de refatoracao propostas
 
 1. Criar branch `original` apontando para o estado antigo do projeto.
@@ -96,15 +183,29 @@ Esta secao documenta 3 exemplos de smells encontrados na aplicacao. A mesma estr
 - Removida dependencia morta (`dead dependency`): o `EditUserUseCase` injetava `HashGenerator` no construtor sem nunca utiliza-lo. Como a edicao de usuario altera apenas `name` e `login`, a dependencia foi removida, reduzindo acoplamento falso.
 - Corrigida duplicacao de logica e bug de estoque no `EditSaleUseCase`. A chamada `product.increaseStock(sale.quantity)` aparecia duplicada, devolvendo o estoque em dobro, e, ao trocar o produto da venda, o estoque era restaurado no produto errado (o novo, em vez do antigo). Agora, quando o produto muda, carrega-se o produto anterior (`sale.productId`) para devolver o estoque a ele e desconta-se do novo produto; quando o produto e o mesmo, a devolucao e o desconto ocorrem no mesmo registro. O campo `sale.productId`, que nao era persistido apos a troca, passou a ser atualizado.
 
-## Divisao sugerida para 5 integrantes
+### Refatoracoes do smell 4 (numero magico de paginacao)
 
-O enunciado pede grupos de 3 a 4 integrantes, entao e importante validar o grupo de 5 com o professor. Caso ele aceite, uma divisao equilibrada de participacao pode ser:
+- Criadas a constante `DEFAULT_PAGE_SIZE = 20` e a funcao helper `toSkipTake(page)` em `api/src/core/repositories/pagination-params.ts`.
+- O literal `20` foi removido das chamadas `findMany` de todos os repositorios Prisma (`prisma-products-repository.ts`, `prisma-users-repository.ts`, `prisma-sales-repository.ts`, `prisma-tags-repository.ts` e `prisma-product-tags-repository.ts`), que passaram a delegar ao helper `toSkipTake(page)`.
+- O numero magico `15` em `findManyWithLowQuantity` foi nomeado como `LOW_STOCK_LIST_LIMIT` na entidade `Product`, e o repositorio Prisma passou a usar a constante.
+- Os repositorios in-memory de teste (`in-memory-products-repository.ts`, `in-memory-users-repository.ts`, `in-memory-sales-repository.ts`, `in-memory-tags-repository.ts` e `in-memory-productsTags-repository.ts`) tambem passaram a usar `DEFAULT_PAGE_SIZE` para manter o comportamento alinhado ao da producao.
 
-1. Integrante 1: analise de smells no backend e refatoracao das regras de venda/estoque.
-2. Integrante 2: analise de smells no frontend e refatoracao dos formularios/dialogs.
-3. Integrante 3: criacao e ajuste dos testes unitarios com Vitest.
-4. Integrante 4: linter, padronizacao de codigo e revisao de nomes/organizacao.
-5. Integrante 5: README, CHANGELOG, comparacao entre branches e preparacao da apresentacao.
+### Refatoracoes do smell 5 (Anemic Domain Model)
+
+- `Product.decreaseStock(quantity)` agora valida `quantity > 0` e usa `hasAvailableStock` internamente, lancando erro se a operacao resultaria em estoque negativo. A regra de "estoque nao pode ficar negativo" deixou de depender do caso de uso lembrar de checar.
+- `Product.increaseStock(quantity)` agora valida `quantity > 0`, impedindo decrementos disfarcados de incremento.
+- Adicionado o metodo `Product.updateDetails({ name, barcode, quantity, value })` com validacoes de invariantes (nome e barcode nao vazios, quantity >= 0, value > 0). As validacoes ficam em metodos estaticos privados (`assertValidName`, `assertValidBarcode`, `assertValidQuantity`, `assertValidValue`).
+- Adicionado o metodo `Sale.updateDetails({ productId, sellerId, quantity, value, soldAt, paymentMethod })` com invariantes equivalentes para vendas.
+- O `EditProductUseCase` passou a chamar `product.updateDetails(...)` em vez de atribuir cada `props` diretamente, deixando o caso de uso mais magro e protegendo o dominio contra dados invalidos.
+- O `EditSaleUseCase` passou a chamar `sale.updateDetails(...)`, eliminando a serie de atribuicoes manuais (`sale.productId = ... sale.quantity = ... sale.value = ...`) e reduzindo o risco de esquecer um campo.
+- Adicionados 10 testes unitarios novos para as invariantes da entidade `Product` em `api/src/domain/stock/enterprise/entities/product.spec.ts`, cobrindo `decreaseStock`, `increaseStock` e `updateDetails`.
+- Adicionados 3 testes unitarios novos para `EditProductUseCase` em `api/src/domain/stock/application/use-cases/product/__tests/edit-product.spec.ts`, cobrindo edicao com sucesso, produto inexistente e rejeicao de valor invalido.
+
+### Refatoracoes do smell 6 (tipos de retorno mentirosos)
+
+- O tipo de retorno de `EditProductUseCase` deixou de declarar `NameAlreadyInUseError` no `Either`, ja que o caso de uso nunca lancava esse erro. O import morto foi removido.
+- A mesma correcao foi aplicada a `EditSaleUseCase`. Os contratos dos casos de uso agora descrevem apenas os erros que efetivamente podem ocorrer (`ResourceNotFoundError`).
+- O erro de lint pre-existente em `get-product-by-id.spec.ts` (`UniqueEntityId` importado e nao utilizado) foi corrigido durante a passagem do linter.
 
 ## Testes implementados
 
@@ -133,12 +234,13 @@ cd api
 pnpm run test:cov
 ```
 
-Resultado da ultima execucao local:
+Resultado da ultima execucao local apos as refatoracoes do integrante 4:
 
-- Testes unitarios: 13 arquivos passaram, 26 testes passaram.
-- Cobertura geral da API: 20,21% de statements, 55,23% de branches, 45,95% de funcoes e 20,21% de linhas.
+- Testes unitarios: 15 arquivos passaram, 39 testes passaram (acrescimo de 2 arquivos e 13 testes novos sobre invariantes de `Product` e edicao de produto).
+- Apos as refatoracoes do smell 5 (Anemic Domain Model), os novos testes em `product.spec.ts` cobrem `decreaseStock`, `increaseStock` e `updateDetails` com seus respectivos cenarios de invariante violada.
+- Apos as refatoracoes do smell 6, os tipos de retorno dos casos de uso de edicao deixaram de mentir sobre os erros que podem ocorrer, o que tambem facilitou os testes (so e necessario validar o caminho real).
 
-Como a cobertura geral ainda nao chega aos 50%, a divisao de trabalho sugerida para o grupo inclui a criacao de novos testes nos modulos de vendas, dashboard, tags e controllers. A entrega atual deixa a infraestrutura de testes funcionando e serve como modelo para os demais integrantes ampliarem a cobertura.
+Como a cobertura geral ainda pode crescer, a divisao de trabalho sugerida para o grupo inclui a criacao de novos testes nos modulos de vendas, dashboard, tags e controllers. A entrega atual deixa a infraestrutura de testes funcionando e serve como modelo para os demais integrantes ampliarem a cobertura.
 
 ## Linter e formatacao
 

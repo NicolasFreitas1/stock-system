@@ -1,4 +1,7 @@
-import { PaginationParams } from '@/core/repositories/pagination-params'
+import {
+  DEFAULT_PAGE_SIZE,
+  PaginationParams,
+} from '@/core/repositories/pagination-params'
 import { ProductTagsRepository } from '@/domain/stock/application/repositories/product-tags-repository'
 import { ProductTag } from '@/domain/stock/enterprise/entities/product-tag'
 
@@ -6,8 +9,8 @@ export class InMemoryProductTagsRepository implements ProductTagsRepository {
   public items: ProductTag[] = []
 
   async findMany({ page }: PaginationParams): Promise<ProductTag[]> {
-    const start = (page - 1) * 20
-    const end = page * 20
+    const start = (page - 1) * DEFAULT_PAGE_SIZE
+    const end = page * DEFAULT_PAGE_SIZE
     return this.items.slice(start, end)
   }
 

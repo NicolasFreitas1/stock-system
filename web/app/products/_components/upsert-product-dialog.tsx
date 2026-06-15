@@ -77,8 +77,6 @@ export function UpsertProductDialog({
     try {
       const formData = { ...data, tagNames: tags };
 
-      console.log("🚀 ~ onSubmit ~ formData:", formData);
-
       await upsertProduct({ ...formData, id: productId });
       setIsOpen(false);
       form.reset();

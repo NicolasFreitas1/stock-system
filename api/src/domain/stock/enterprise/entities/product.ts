@@ -2,6 +2,8 @@ import { Entity } from '@/core/entities/entity'
 import { UniqueEntityId } from '@/core/entities/unique-entity-id'
 import { Optional } from '@/core/types/optional'
 
+export const LOW_STOCK_THRESHOLD = 10
+
 export interface ProductProps {
   name: string
   quantity: number
@@ -45,6 +47,18 @@ export class Product extends Entity<ProductProps> {
 
   get createdAt() {
     return this.props.createdAt
+  }
+
+  hasAvailableStock(quantity: number) {
+    return this.quantity >= quantity
+  }
+
+  decreaseStock(quantity: number) {
+    this.quantity = this.quantity - quantity
+  }
+
+  increaseStock(quantity: number) {
+    this.quantity = this.quantity + quantity
   }
 
   static create(

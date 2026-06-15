@@ -1,6 +1,9 @@
 import { PaginationParams } from '@/core/repositories/pagination-params'
 import { ProductsRepository } from '@/domain/stock/application/repositories/products-repository'
-import { Product } from '@/domain/stock/enterprise/entities/product'
+import {
+  LOW_STOCK_THRESHOLD,
+  Product,
+} from '@/domain/stock/enterprise/entities/product'
 import { Injectable } from '@nestjs/common'
 import { PrismaProductMapper } from '../mappers/prisma-product-mapper'
 import { PrismaService } from '../prisma.service'
@@ -24,7 +27,7 @@ export class PrismaProductsRepository implements ProductsRepository {
     const products = await this.prisma.product.findMany({
       where: {
         quantity: {
-          lte: 10,
+          lte: LOW_STOCK_THRESHOLD,
         },
       },
       orderBy: {

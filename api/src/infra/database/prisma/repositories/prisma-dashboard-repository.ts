@@ -1,5 +1,6 @@
 import { UniqueEntityId } from '@/core/entities/unique-entity-id'
 import { DashboardRepository } from '@/domain/stock/application/repositories/dashboard-repository'
+import { LOW_STOCK_THRESHOLD } from '@/domain/stock/enterprise/entities/product'
 import { SalePerProduct } from '@/domain/stock/enterprise/entities/value-objects/sale-per-product'
 import { SalesBySeller } from '@/domain/stock/enterprise/entities/value-objects/sales-by-seller'
 import { StockMetrics } from '@/domain/stock/enterprise/entities/value-objects/stock-metrics'
@@ -62,7 +63,7 @@ export class PrismaDashboardRepository implements DashboardRepository {
       where: {
         quantity: {
           gt: 0,
-          lte: 10,
+          lte: LOW_STOCK_THRESHOLD,
         },
       },
     })

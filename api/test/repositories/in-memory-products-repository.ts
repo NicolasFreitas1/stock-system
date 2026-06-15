@@ -1,6 +1,10 @@
 import { PaginationParams } from '@/core/repositories/pagination-params'
 import { ProductsRepository } from '@/domain/stock/application/repositories/products-repository'
-import { Product } from '@/domain/stock/enterprise/entities/product'
+import {
+  LOW_STOCK_THRESHOLD,
+  Product,
+} from '@/domain/stock/enterprise/entities/product'
+import { ProductWithTags } from '@/domain/stock/enterprise/entities/value-objects/product-with-tags'
 
 export class InMemoryProductsRepository implements ProductsRepository {
   public items: Product[] = []
@@ -10,8 +14,21 @@ export class InMemoryProductsRepository implements ProductsRepository {
     return products
   }
 
+  async findManyWithLowQuantity(): Promise<Product[]> {
+    return this.items.filter((item) => item.quantity <= LOW_STOCK_THRESHOLD)
+  }
+
+  async findManyWithTags(): Promise<ProductWithTags[]> {
+    return this.items as unknown as ProductWithTags[]
+  }
+
   async findById(id: string): Promise<Product | null> {
     const product = this.items.find((item) => item.id.toString() === id)
+    return product || null
+  }
+
+  async findByBarcode(barcode: string): Promise<Product | null> {
+    const product = this.items.find((item) => item.barcode === barcode)
     return product || null
   }
 

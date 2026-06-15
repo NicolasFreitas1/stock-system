@@ -1,6 +1,6 @@
 import { Either, left, right } from '@/core/either'
 import { ResourceNotFoundError } from '@/core/errors/errors/resource-not-found-error'
-import { Sale } from '@/domain/stock/enterprise/entities/sale'
+import { PaymentMethod, Sale } from '@/domain/stock/enterprise/entities/sale'
 import { Injectable } from '@nestjs/common'
 import { UsersRepository } from '../../repositories/users-repository'
 import { ProductsRepository } from '../../repositories/products-repository'
@@ -12,14 +12,7 @@ interface CreateSaleUseCaseRequest {
   soldAt: Date
   productId: string
   sellerId: string
-  paymentMethod:
-    | 'CREDIT_CARD'
-    | 'DEBIT_CARD'
-    | 'BANK_TRANSFER'
-    | 'BANK_SLIP'
-    | 'CASH'
-    | 'PIX'
-    | 'OTHER'
+  paymentMethod: PaymentMethod
 }
 
 type CreateSaleUseCaseResponse = Either<
@@ -56,7 +49,7 @@ export class CreateSaleUseCase {
       return left(new ResourceNotFoundError())
     }
 
-    if (product.quantity < quantity && product.quantity - quantity < 0) {
+    if (!product.hasAvailableStock(quantity)) {
       return left(new SaleNotValidError())
     }
 
@@ -71,7 +64,7 @@ export class CreateSaleUseCase {
 
     await this.salesRepository.create(sale)
 
-    product.quantity = product.quantity - quantity
+    product.decreaseStock(quantity)
 
     await this.productsRepository.save(product)
 

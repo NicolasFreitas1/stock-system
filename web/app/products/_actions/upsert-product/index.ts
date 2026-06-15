@@ -16,8 +16,6 @@ interface UpsertProductParams {
 export async function upsertProduct(params: UpsertProductParams) {
   upsertProductSchema.parse(params);
 
-  console.log(params.tagNames);
-
   if (params.id) {
     await apiServer.put(`/product/${params.id}`, {
       name: params.name,

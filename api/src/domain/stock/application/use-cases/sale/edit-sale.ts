@@ -1,7 +1,7 @@
 import { Either, left, right } from '@/core/either'
 import { Injectable } from '@nestjs/common'
 import { NameAlreadyInUseError } from '../__errors/name-already-in-use-error'
-import { Sale } from '@/domain/stock/enterprise/entities/sale'
+import { PaymentMethod, Sale } from '@/domain/stock/enterprise/entities/sale'
 import { SalesRepository } from '../../repositories/sales-repository'
 import { ResourceNotFoundError } from '@/core/errors/errors/resource-not-found-error'
 import { ProductsRepository } from '../../repositories/products-repository'
@@ -13,14 +13,7 @@ interface EditSaleUseCaseRequest {
   soldAt: Date
   productId: string
   sellerId: string
-  paymentMethod:
-    | 'CREDIT_CARD'
-    | 'DEBIT_CARD'
-    | 'BANK_TRANSFER'
-    | 'BANK_SLIP'
-    | 'CASH'
-    | 'PIX'
-    | 'OTHER'
+  paymentMethod: PaymentMethod
 }
 
 type EditSaleUseCaseResponse = Either<
@@ -65,16 +58,16 @@ export class EditSaleUseCase {
     }
 
     if (productId !== sale.productId.toString()) {
-      product.quantity = product.quantity + sale.quantity
+      product.increaseStock(sale.quantity)
 
       await this.productsRepository.save(product)
     }
 
-    product.quantity = product.quantity + sale.quantity - quantity
+    product.increaseStock(sale.quantity)
+    product.decreaseStock(quantity)
 
     sale.quantity = quantity
     sale.sellerId = seller.id
-    sale.quantity = quantity
     sale.value = product.value * quantity
     sale.soldAt = soldAt
     sale.paymentMethod = paymentMethod

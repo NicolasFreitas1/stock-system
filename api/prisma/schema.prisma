@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String  @id @default(uuid()) @map("id_user") @db.Uuid
+  name     String  @map("nm_user") @db.VarChar(250)
+  login    String  @unique @map("nm_login") @db.VarChar(150)
+  password String  @map("vl_password") @db.VarChar(250)
+  isAdmin  Boolean @default(false) @map("bl_is_admin")
+
+  Sale Sale[]
+
+  @@map("user")
+}
+
+model Tag {
+  id   String @id @default(uuid()) @map("id_category") @db.Uuid
+  name String @unique @map("nm_tag") @db.VarChar(150)
+
+  productTags ProductTag[]
+
+  @@map("tag")
+}
+
+model Product {
+  id        String   @id @default(uuid()) @map("id_product") @db.Uuid
+  name      String   @map("nm_product") @db.VarChar(250)
+  quantity  Int      @map("vl_quantity")
+  value     Float    @map("vl_product")
+  barcode   String   @unique @map("cd_barcode") @db.Text
+  createdAt DateTime @map("dt_created")
+
+  sales Sale[]
+
+  productTags ProductTag[]
+
+  @@map("product")
+}
+
+model ProductTag {
+  id        String @id @default(uuid()) @map("id_product_tag") @db.Uuid
+  productId String @map("id_product") @db.Uuid
+  tagId     String @map("id_category") @db.Uuid
+
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_tag")
+}
+
+model Sale {
+  id            String        @id @default(uuid()) @map("id_sale") @db.Uuid
+  value         Float         @map("vl_sale")
+  quantity      Int           @map("vl_quantity")
+  soldAt        DateTime      @default(now()) @map("dt_sold")
+  productId     String        @map("id_product") @db.Uuid
+  sellerId      String        @map("id_seller") @db.Uuid
+  paymentMethod PaymentMethod @map("tp_payment_method")
+
+  seller  User    @relation(fields: [sellerId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("sale")
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  BANK_SLIP
+  CASH
+  PIX
+  OTHER
+}

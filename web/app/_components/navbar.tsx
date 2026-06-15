@@ -5,25 +5,7 @@ import { usePathname } from "next/navigation";
 import LogOut from "./log-out";
 
 export default function Navbar() {
-  // const [userSession, setUserSession] = useState<
-  //   | {
-  //       name?: string | null;
-  //       email?: string | null;
-  //       image?: string | null;
-  //       isAdmin?: boolean | null;
-  //     }
-  //   | undefined
-  // >(undefined);
-
   const pathname = usePathname();
-
-  // async function getServerUserSession() {
-  //   const serverUserSession = await getUserSession();
-
-  //   console.log(serverUserSession);
-
-  //   setUserSession(serverUserSession);
-  // }
 
   return (
     <nav className="flex justify-between border-b border-solid px-8 py-4">

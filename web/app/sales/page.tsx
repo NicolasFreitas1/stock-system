@@ -7,14 +7,14 @@ import { redirect } from "next/navigation";
 import { saleColumns } from "./_columns";
 import { AddSaleButton } from "../_components/add-sale-button";
 
-export default async function UsersPage() {
+export default async function SalesPage() {
   const session = await getServerSession();
 
   if (!session) {
     redirect("/login");
   }
 
-  const users = await getSales();
+  const sales = await getSales();
 
   return (
     <>
@@ -26,7 +26,7 @@ export default async function UsersPage() {
         </div>
 
         <ScrollArea className="h-full">
-          <DataTable columns={saleColumns} data={users ?? []} />
+          <DataTable columns={saleColumns} data={sales ?? []} />
         </ScrollArea>
       </div>
     </>

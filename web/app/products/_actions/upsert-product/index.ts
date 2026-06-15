@@ -23,20 +23,15 @@ export async function upsertProduct(params: UpsertProductParams) {
       quantity: params.quantity,
       value: params.value,
     });
-
-    revalidatePath("/");
-    revalidatePath("/products");
-
-    return;
+  } else {
+    await apiServer.post("/product", {
+      name: params.name,
+      barcode: params.barcode,
+      quantity: params.quantity,
+      value: params.value,
+      tagNames: params.tagNames,
+    });
   }
-
-  await apiServer.post("/product", {
-    name: params.name,
-    barcode: params.barcode,
-    quantity: params.quantity,
-    value: params.value,
-    tagNames: params.tagNames,
-  });
 
   revalidatePath("/");
   revalidatePath("/products");

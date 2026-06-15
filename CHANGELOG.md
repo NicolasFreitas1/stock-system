@@ -9,7 +9,7 @@ O formato segue as recomendacoes de [Keep a Changelog](https://keepachangelog.co
 ### Added
 
 - Documentacao inicial do projeto na raiz do repositorio.
-- Analise de 6 code smells relevantes encontrados na aplicacao, distribuidos entre os 5 integrantes do grupo.
+- Analise de 9 code smells relevantes encontrados na aplicacao, distribuidos entre os 5 integrantes do grupo.
 - Estrategias sugeridas de refatoracao para duplicacao de tipos, componentes com muitas responsabilidades e regras de estoque pouco expressivas.
 - Documentacao e refatoracao do code smell 4 (paginacao com numero magico `20` repetido em todos os repositorios Prisma e `15` em `findManyWithLowQuantity`).
 - Documentacao e refatoracao do code smell 5 (Anemic Domain Model nas entidades `Product` e `Sale`: setters publicos sem invariantes, `decreaseStock` sem guardas, casos de uso mutando `props` diretamente).
@@ -28,6 +28,9 @@ O formato segue as recomendacoes de [Keep a Changelog](https://keepachangelog.co
 
 ### Changed
 
+- `upsertProduct` em `web/app/products/_actions/upsert-product/index.ts` refatorado: os branches `if/else` foram unificados para que as chamadas `revalidatePath("/")` e `revalidatePath("/products")` sejam executadas uma unica vez ao final da funcao, eliminando duplicacao (DRY).
+- Componente `Navbar` em `web/app/_components/navbar.tsx` limpo: removidos dois blocos de codigo morto comentado (`useState` de sessao e funcao `getServerUserSession` com `console.log`).
+- Pagina de vendas `web/app/sales/page.tsx` corrigida: funcao renomeada de `UsersPage` para `SalesPage` e variavel renomeada de `users` para `sales`, alinhando os nomes ao dominio correto.
 - O README principal passa a descrever o sistema real, substituindo a ausencia de documentacao centralizada do repositorio.
 - Casos de uso de venda passam a reutilizar o tipo `PaymentMethod` da entidade de dominio.
 - Regras de estoque passam a usar metodos expressivos da entidade `Product`.

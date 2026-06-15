@@ -12,7 +12,7 @@ Sistema de controle de estoque com API em NestJS e interface web em Next.js. A a
 
 ## Analise inicial de code smells
 
-Esta secao documenta 6 exemplos de smells encontrados na aplicacao, atendendo ao minimo exigido no enunciado do trabalho.
+Esta secao documenta 9 exemplos de smells encontrados na aplicacao, atendendo ao minimo exigido no enunciado do trabalho.
 
 ### 1. Duplicacao de regras e tipos de metodo de pagamento
 
@@ -162,6 +162,14 @@ Tanto `EditProductUseCase` quanto `EditSaleUseCase` importam e declaram em seus 
 - Garantir que os controllers correspondentes nao tentem mapear um erro que nunca acontece.
 
 **Resultado esperado:** assinaturas honestas, ausencia de dead code/dead imports e contratos de caso de uso que descrevem exatamente os cenarios reais de falha.
+
+### Refatoracoes da pasta web (code smells adicionais)
+
+- **Codigo duplicado em `upsertProduct`** (`web/app/products/_actions/upsert-product/index.ts`): as chamadas `revalidatePath("/")` e `revalidatePath("/products")` estavam repetidas nos dois branches (`if` para update e o caminho de create). O condicional foi reescrito como `if/else` e os `revalidatePath` foram movidos para apos o bloco, sendo chamados uma unica vez independentemente do caminho executado.
+
+- **Codigo morto em `Navbar`** (`web/app/_components/navbar.tsx`): havia dois blocos de codigo comentado sem proposito: um `useState` com tipo complexo de sessao de usuario e uma funcao `getServerUserSession` que chamava `getUserSession` e fazia `console.log`. Ambos foram removidos, deixando o componente limpo.
+
+- **Nomenclatura incorreta em `sales/page.tsx`** (`web/app/sales/page.tsx`): a funcao exportada se chamava `UsersPage` e a variavel que recebia o resultado de `getSales()` se chamava `users`, gerando confusao sobre o dominio da pagina. Ambos foram renomeados para `SalesPage` e `sales`, respectivamente.
 
 ## Estrategias de refatoracao propostas
 

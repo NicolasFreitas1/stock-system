@@ -6,6 +6,7 @@ export const upsertSaleSchema = z.object({
   productId: z.string().uuid(),
   quantity: z.number(),
   sellerId: z.string().uuid(),
+  soldAt: z.date(),
   paymentMethod: z.nativeEnum(PaymentMethod),
 });
 

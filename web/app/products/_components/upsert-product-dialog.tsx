@@ -83,8 +83,7 @@ export function UpsertProductDialog({
       setTags([]);
 
       toast.success("Produto adicionado com sucesso");
-    } catch (error) {
-      console.log(error);
+    } catch {
       toast.error("Algo inesperado aconteceu!");
     }
   };

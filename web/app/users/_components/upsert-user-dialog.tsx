@@ -55,8 +55,7 @@ export function UpsertUserDialog({
       form.reset();
 
       toast.success(`Usuário ${userId ? "atualizado" : "adicionado"} com sucesso`);
-    } catch (error) {
-      console.log(error);
+    } catch {
       toast.error("Algo inesperado aconteceu!");
     }
   };

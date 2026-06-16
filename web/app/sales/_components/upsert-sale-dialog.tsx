@@ -69,8 +69,8 @@ export function UpsertSaleDialog({
       const users = await getUsers();
 
       setUsers(users ?? []);
-    } catch (e) {
-      console.log(e);
+    } catch {
+      toast.error("Erro ao carregar vendedores.");
     }
   }
 
@@ -79,8 +79,8 @@ export function UpsertSaleDialog({
       const products = await getProducts();
 
       setProducts(products ?? []);
-    } catch (e) {
-      console.log(e);
+    } catch {
+      toast.error("Erro ao carregar produtos.");
     }
   }
 
@@ -104,8 +104,7 @@ export function UpsertSaleDialog({
       toast.success(
         `Venda ${isUpdate ? "atualizada" : "adicionada"} com sucesso!`
       );
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Erro ao salvar a venda.");
     }
   };
@@ -113,11 +112,6 @@ export function UpsertSaleDialog({
   useEffect(() => {
     if (isOpen) {
       listUsers();
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
       listProducts();
     }
   }, [isOpen]);

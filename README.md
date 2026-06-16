@@ -163,6 +163,52 @@ Tanto `EditProductUseCase` quanto `EditSaleUseCase` importam e declaram em seus 
 
 **Resultado esperado:** assinaturas honestas, ausencia de dead code/dead imports e contratos de caso de uso que descrevem exatamente os cenarios reais de falha.
 
+### 10. Instrucoes de debug (`console.log`) em codigo de producao
+
+**Arquivos envolvidos:**
+
+- `web/app/sales/_components/upsert-sale-dialog.tsx`
+- `web/app/products/_components/upsert-product-dialog.tsx`
+- `web/app/users/_components/upsert-user-dialog.tsx`
+- `web/app/sales/_actions/upsert-sale/index.ts`
+
+**Problema:** chamadas `console.log` e `console.error` em blocos `catch` de componentes de formulario e na server action `upsertSale`. No caso mais grave (`upsertSale`), o erro era capturado e apenas impresso no console sem ser relancado, fazendo com que o caller nunca soubesse da falha e exibisse um estado de sucesso ao usuario mesmo quando a requisicao falhava.
+
+**Principios relacionados:** nao usar output de debug em codigo de producao, nao silenciar erros (Don't Swallow Errors), separacao entre logging de diagnose e feedback ao usuario.
+
+**Estrategia de refatoracao:** remover os blocos `catch` que so continham `console.log`. Na server action, retirar o `try/catch` inteiro para que erros se propagam naturalmente ao caller (o `onSubmit` do dialog, que ja possui tratamento correto com `toast.error`). Nos dialogs, substituir o `console.log` por `toast.error` com mensagem contextualizada e usar `catch` sem variavel de excecao vinculada quando ela nao e utilizada.
+
+**Resultado esperado:** erros de rede ou de validacao chegam ao usuario via notificacao visual; o console de producao fica limpo de output de diagnostico; o fluxo de controle de erros e explicito e rastreavel.
+
+### 11. Dois `useEffect` para o mesmo gatilho (`isOpen`) — violacao de DRY
+
+**Arquivos envolvidos:**
+
+- `web/app/sales/_components/upsert-sale-dialog.tsx`
+
+**Problema:** o componente `UpsertSaleDialog` registrava dois `useEffect` separados, ambos com a mesma dependencia `[isOpen]` e a mesma condicao `if (isOpen)`, para disparar `listUsers()` e `listProducts()`. Ter dois hooks que reagem ao mesmo evento e executam acoes complementares e uma violacao do principio DRY: qualquer alteracao na logica de abertura do dialog (adicionar loading state, checar autorizacao, etc.) exige editar dois lugares.
+
+**Principios relacionados:** DRY (Don't Repeat Yourself), coesao — acoes que pertencem ao mesmo evento devem ser agrupadas.
+
+**Estrategia de refatoracao:** mesclar os dois `useEffect` em um unico bloco que chama `listUsers()` e `listProducts()` sequencialmente quando `isOpen` for verdadeiro.
+
+**Resultado esperado:** um unico ponto de controle para a logica de carregamento ao abrir o dialog, eliminando o risco de inconsistencia entre os dois efeitos e simplificando futuras alteracoes.
+
+### 12. Campo `soldAt` ausente no schema da server action `upsertSale`
+
+**Arquivos envolvidos:**
+
+- `web/app/sales/_actions/upsert-sale/schema.ts`
+- `web/app/sales/_components/upsert-sale-dialog.tsx`
+
+**Problema:** o schema Zod do formulario no dialog declarava o campo `soldAt: z.date()`, mas o schema da server action (`upsertSaleSchema`) nao incluia esse campo. O formulario passava `soldAt` para `upsertSale` via spread (`{ ...data, id: saleId }`), mas o TypeScript nao reclamava porque o campo extra nao esta no tipo declarado — ele simplesmente passava sem validacao ou tipagem no contrato da funcao servidor. Isso viola o principio de Single Source of Truth e cria um campo "invisivel" que e enviado a API sem ser reconhecido pelo schema.
+
+**Principios relacionados:** Single Source of Truth, contratos honestos de interface, seguranca de tipos (type safety) de ponta a ponta.
+
+**Estrategia de refatoracao:** adicionar `soldAt: z.date()` ao `upsertSaleSchema` para que o contrato da server action reflita todos os campos que ela efetivamente recebe e encaminha para a API.
+
+**Resultado esperado:** o campo `soldAt` e validado e tipado em toda a cadeia (formulario → action → API), eliminando a divergencia entre o schema do formulario e o da action.
+
 ### Refatoracoes da pasta web (code smells adicionais)
 
 - **Codigo duplicado em `upsertProduct`** (`web/app/products/_actions/upsert-product/index.ts`): as chamadas `revalidatePath("/")` e `revalidatePath("/products")` estavam repetidas nos dois branches (`if` para update e o caminho de create). O condicional foi reescrito como `if/else` e os `revalidatePath` foram movidos para apos o bloco, sendo chamados uma unica vez independentemente do caminho executado.
@@ -170,6 +216,13 @@ Tanto `EditProductUseCase` quanto `EditSaleUseCase` importam e declaram em seus 
 - **Codigo morto em `Navbar`** (`web/app/_components/navbar.tsx`): havia dois blocos de codigo comentado sem proposito: um `useState` com tipo complexo de sessao de usuario e uma funcao `getServerUserSession` que chamava `getUserSession` e fazia `console.log`. Ambos foram removidos, deixando o componente limpo.
 
 - **Nomenclatura incorreta em `sales/page.tsx`** (`web/app/sales/page.tsx`): a funcao exportada se chamava `UsersPage` e a variavel que recebia o resultado de `getSales()` se chamava `users`, gerando confusao sobre o dominio da pagina. Ambos foram renomeados para `SalesPage` e `sales`, respectivamente.
+
+### Refatoracoes dos smells 10, 11 e 12 (instrucoes de debug, useEffect duplicados e schema incompleto)
+
+- Removidos todos os `console.log` e `console.error` dos blocos `catch` dos dialogs de venda, produto e usuario, substituindo por `toast.error` com mensagem contextualizada quando o usuario precisa ser informado do erro.
+- Removido o `try/catch` da server action `upsertSale` que silenciava erros: a funcao agora deixa a excecao propagar ao caller (`onSubmit` do dialog), onde ja existe tratamento adequado com notificacao visual.
+- Os dois `useEffect` em `UpsertSaleDialog` que compartilhavam a mesma dependencia `[isOpen]` foram mesclados em um unico efeito, eliminando a duplicacao de logica de carregamento ao abrir o dialog.
+- O campo `soldAt` foi adicionado ao `upsertSaleSchema` em `web/app/sales/_actions/upsert-sale/schema.ts`, alinhando o contrato da server action com o schema do formulario e garantindo validacao e tipagem de ponta a ponta.
 
 ## Estrategias de refatoracao propostas
 

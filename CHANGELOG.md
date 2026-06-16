@@ -8,6 +8,9 @@ O formato segue as recomendacoes de [Keep a Changelog](https://keepachangelog.co
 
 ### Added
 
+- Documentacao e refatoracao do code smell 10 (instrucoes de debug `console.log`/`console.error` em codigo de producao nos dialogs de venda, produto e usuario e na server action `upsertSale`).
+- Documentacao e refatoracao do code smell 11 (dois `useEffect` com dependencia `[isOpen]` identica em `UpsertSaleDialog`, violando DRY).
+- Documentacao e refatoracao do code smell 12 (campo `soldAt` ausente no `upsertSaleSchema`, criando divergencia entre o schema do formulario e o contrato da server action).
 - Documentacao inicial do projeto na raiz do repositorio.
 - Analise de 9 code smells relevantes encontrados na aplicacao, distribuidos entre os 5 integrantes do grupo.
 - Estrategias sugeridas de refatoracao para duplicacao de tipos, componentes com muitas responsabilidades e regras de estoque pouco expressivas.
@@ -28,6 +31,11 @@ O formato segue as recomendacoes de [Keep a Changelog](https://keepachangelog.co
 
 ### Changed
 
+- `upsertSale` em `web/app/sales/_actions/upsert-sale/index.ts` refatorado: removido bloco `try/catch` que silenciava erros com `console.log(e)`. Erros agora propagam ao caller (`onSubmit` do dialog), que ja possui tratamento adequado via `toast.error`.
+- `UpsertSaleDialog` em `web/app/sales/_components/upsert-sale-dialog.tsx`: `console.log` dos blocos `catch` de `listUsers` e `listProducts` substituidos por `toast.error` com mensagens contextualizadas; `console.error` removido do `catch` de `onSubmit` (tratamento ja feito pelo `toast.error`); dois `useEffect` com dependencia `[isOpen]` mesclados em um unico efeito que dispara ambos os carregamentos.
+- `UpsertProductDialog` em `web/app/products/_components/upsert-product-dialog.tsx`: `console.log(error)` removido do `catch` de `onSubmit`.
+- `UpsertUserDialog` em `web/app/users/_components/upsert-user-dialog.tsx`: `console.log(error)` removido do `catch` de `onSubmit`.
+- `upsertSaleSchema` em `web/app/sales/_actions/upsert-sale/schema.ts`: campo `soldAt: z.date()` adicionado para alinhar o contrato da server action com o schema do formulario, garantindo validacao e tipagem de ponta a ponta.
 - `upsertProduct` em `web/app/products/_actions/upsert-product/index.ts` refatorado: os branches `if/else` foram unificados para que as chamadas `revalidatePath("/")` e `revalidatePath("/products")` sejam executadas uma unica vez ao final da funcao, eliminando duplicacao (DRY).
 - Componente `Navbar` em `web/app/_components/navbar.tsx` limpo: removidos dois blocos de codigo morto comentado (`useState` de sessao e funcao `getServerUserSession` com `console.log`).
 - Pagina de vendas `web/app/sales/page.tsx` corrigida: funcao renomeada de `UsersPage` para `SalesPage` e variavel renomeada de `users` para `sales`, alinhando os nomes ao dominio correto.
@@ -46,6 +54,9 @@ O formato segue as recomendacoes de [Keep a Changelog](https://keepachangelog.co
 
 ### Removed
 
+- `console.log` e `console.error` dos blocos `catch` dos dialogs `UpsertSaleDialog`, `UpsertProductDialog` e `UpsertUserDialog`.
+- Bloco `try/catch` da server action `upsertSale` que engolia erros silenciosamente com `console.log`.
+- `useEffect` redundante em `UpsertSaleDialog` (era identico ao anterior, com mesma dependencia `[isOpen]`).
 - Logs de debug do fluxo de cadastro/edicao de produtos no frontend.
 - Dependencia `HashGenerator` injetada e nao utilizada no `EditUserUseCase`, eliminando acoplamento desnecessario (dead dependency).
 - Literal `20` (numero magico de paginacao) das chamadas `findMany` dos repositorios Prisma e in-memory.
